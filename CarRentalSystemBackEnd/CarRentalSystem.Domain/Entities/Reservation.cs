@@ -34,7 +34,7 @@ public class Reservation
         if (IsReturned) throw new InvalidOperationException("Reservation already returned");
         if (returnDateTime < PickupDateTime) throw new ArgumentOutOfRangeException("Return Date must be greater than pick up date");
         if (returnMeterReading < PickupMeterReading) throw new ArgumentOutOfRangeException("Return meter reading must be greater than or equal to prick up meter reading");
-        if (calculatedPrice < 0) throw new ArgumentOutOfRangeException(nameof(calculatedPrice));
+        if (calculatedPrice < 0) throw new ArgumentOutOfRangeException("Final amount must be none negative");
 
         ReturnDateTime = returnDateTime;
         ReturnMeterReading = returnMeterReading;

@@ -127,21 +127,7 @@ public class ReservationServiceTests
             ReturnMeterReading = pickupMeterReading
         };
 
-        _mockReservationRepository
-            .Setup(x => x.GetByBookingIdAsync(bookingId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(reservation);
-
-        _mockCarRepository
-            .Setup(x => x.GetByIdAsync(carId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(car);
-
-        _mockCarCategoryRepository
-            .Setup(x => x.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(category);
-
-        _mockReservationRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -173,21 +159,7 @@ public class ReservationServiceTests
             ReturnMeterReading = pickupMeterReading
         };
 
-        _mockReservationRepository
-            .Setup(x => x.GetByBookingIdAsync(bookingId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(reservation);
-
-        _mockCarRepository
-            .Setup(x => x.GetByIdAsync(carId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(car);
-
-        _mockCarCategoryRepository
-            .Setup(x => x.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(category);
-
-        _mockReservationRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
 
       
         var result = await _reservationService.CreateReturnAsync(returnDto);
@@ -221,27 +193,70 @@ public class ReservationServiceTests
             ReturnMeterReading = pickupMeterReading
         };
 
-        _mockReservationRepository
-            .Setup(x => x.GetByBookingIdAsync(bookingId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(reservation);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
 
-        _mockCarRepository
-            .Setup(x => x.GetByIdAsync(carId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(car);
-
-        _mockCarCategoryRepository
-            .Setup(x => x.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(category);
-
-        _mockReservationRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-       
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
         var expectedPrice = (baseDayRental * 1 * 1.5m) + (baseKmPrice * 0 * 1.5m); 
         Assert.Equal(expectedPrice, result.RentalAmount);
+    }
+
+    [Fact]
+    public async Task ThrowException_ShouldCalculatePrice_ForTruck_NegativeBaseRental()
+    {
+        var baseDayRental = -100m;
+        var baseKmPrice = 1m;
+        var categoryId = 3;
+        var carId = Guid.NewGuid();
+
+        var pickupDateTime = DateTime.UtcNow.AddHours(-20);
+        var returnDateTime = DateTime.UtcNow;
+        var pickupMeterReading = 1000;
+
+        var category = new CarCategory("Truck", CarPricingStrategy.Truck, 1.5m, 1.5m, true, baseKmPrice, baseDayRental);
+        var car = new Car("TRUCK1", categoryId, pickupMeterReading, "Scania", "R500", "White", isAvailableToRent: false);
+        var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+        SetReservationCar(reservation, car);
+        var bookingId = reservation.Id;
+
+        var returnDto = new ReturnDto
+        {
+            BookingNumber = bookingId,
+            ReturnMeterReading = pickupMeterReading
+        };
+
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CreateReturnAsync(returnDto));
+    }
+
+    [Fact]
+    public async Task ThrowException_ShouldCalculatePrice_ForTruck_NegativeReturnMeterReading()
+    {
+        var baseDayRental = -100m;
+        var baseKmPrice = 1m;
+        var categoryId = 3;
+        var carId = Guid.NewGuid();
+
+        var pickupDateTime = DateTime.UtcNow.AddHours(-20);
+        var returnDateTime = DateTime.UtcNow;
+        var pickupMeterReading = 1000;
+
+        var category = new CarCategory("Truck", CarPricingStrategy.Truck, 1.5m, 1.5m, true, baseKmPrice, baseDayRental);
+        var car = new Car("TRUCK1", categoryId, pickupMeterReading, "Scania", "R500", "White", isAvailableToRent: false);
+        var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+        SetReservationCar(reservation, car);
+        var bookingId = reservation.Id;
+
+        var returnDto = new ReturnDto
+        {
+            BookingNumber = bookingId,
+            ReturnMeterReading = 890
+        };
+
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CreateReturnAsync(returnDto));
     }
 
     [Fact]
@@ -268,21 +283,7 @@ public class ReservationServiceTests
             ReturnMeterReading = returnMeterReading
         };
 
-        _mockReservationRepository
-            .Setup(x => x.GetByBookingIdAsync(bookingId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(reservation);
-
-        _mockCarRepository
-            .Setup(x => x.GetByIdAsync(carId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(car);
-
-        _mockCarCategoryRepository
-            .Setup(x => x.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(category);
-
-        _mockReservationRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -314,21 +315,7 @@ public class ReservationServiceTests
             ReturnMeterReading = returnMeterReading
         };
 
-        _mockReservationRepository
-            .Setup(x => x.GetByBookingIdAsync(bookingId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(reservation);
-
-        _mockCarRepository
-            .Setup(x => x.GetByIdAsync(car.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(car);
-
-        _mockCarCategoryRepository
-            .Setup(x => x.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(category);
-
-        _mockReservationRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        SetupReturnMocks(bookingId, car.Id, categoryId, reservation, car, category);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -361,21 +348,7 @@ public class ReservationServiceTests
             ReturnMeterReading = returnMeterReading
         };
 
-        _mockReservationRepository
-            .Setup(x => x.GetByBookingIdAsync(bookingId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(reservation);
-
-        _mockCarRepository
-            .Setup(x => x.GetByIdAsync(carId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(car);
-
-        _mockCarCategoryRepository
-            .Setup(x => x.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(category);
-
-        _mockReservationRepository
-            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -406,6 +379,25 @@ public class ReservationServiceTests
             .ReturnsAsync(reservation);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CreateReturnAsync(returnDto));
+    }
+
+    private void SetupReturnMocks(Guid bookingId, Guid carId, int categoryId, Reservation reservation, Car car, CarCategory category)
+    {
+        _mockReservationRepository
+            .Setup(x => x.GetByBookingIdAsync(bookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(reservation);
+
+        _mockCarRepository
+            .Setup(x => x.GetByIdAsync(carId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(car);
+
+        _mockCarCategoryRepository
+            .Setup(x => x.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
+
+        _mockReservationRepository
+            .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
     }
 
     private static void SetReservationCar(Reservation reservation, Car car)
