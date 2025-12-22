@@ -245,7 +245,40 @@ public class ReservationServiceTests
         var category = new CarCategory("Truck", CarPricingStrategy.Truck, 1.5m, 1.5m, true, baseKmPrice, baseDayRental);
         var car = new Car("TRUCK1", categoryId, pickupMeterReading, "Scania", "R500", "White", isAvailableToRent: false);
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+
         SetReservationCar(reservation, car);
+
+        var bookingId = reservation.Id;
+
+        var returnDto = new ReturnDto
+        {
+            BookingNumber = bookingId,
+            ReturnMeterReading = 890
+        };
+
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CreateReturnAsync(returnDto));
+    }
+
+    [Fact]
+    public async Task ThrowException_ShouldCalculatePrice_ForTruck_PastReturnDateThanPickUpDate()
+    {
+        var baseDayRental = -100m;
+        var baseKmPrice = 1m;
+        var categoryId = 3;
+        var carId = Guid.NewGuid();
+
+        var pickupDateTime = DateTime.UtcNow.AddHours(20);
+        var returnDateTime = DateTime.UtcNow;
+        var pickupMeterReading = 1000;
+
+        var category = new CarCategory("Truck", CarPricingStrategy.Truck, 1.5m, 1.5m, true, baseKmPrice, baseDayRental);
+        var car = new Car("TRUCK1", categoryId, pickupMeterReading, "Scania", "R500", "White", isAvailableToRent: false);
+        var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+
+        SetReservationCar(reservation, car);
+
         var bookingId = reservation.Id;
 
         var returnDto = new ReturnDto
