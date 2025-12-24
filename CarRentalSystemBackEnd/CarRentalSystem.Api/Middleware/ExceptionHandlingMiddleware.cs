@@ -29,11 +29,11 @@ namespace CarRentalSystem.Api.Middleware
                 ArgumentOutOfRangeException tle => (
                     HttpStatusCode.UnprocessableEntity,
                     "worng_meter_reading",
-                    tle.InnerException?.Message),
+                    tle.InnerException!=null?tle.InnerException?.Message: tle.Message),
                 InvalidOperationException tae => (
                     HttpStatusCode.BadRequest,
                     "something_went_wrong",
-                    tae.InnerException?.Message),
+                     tae.InnerException != null ? tae.InnerException?.Message : tae.Message),
                 _ => (
                     HttpStatusCode.InternalServerError,
                     "internal_error",

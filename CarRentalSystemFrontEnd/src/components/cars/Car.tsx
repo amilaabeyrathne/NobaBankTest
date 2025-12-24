@@ -22,6 +22,7 @@ export default function Car({ car }: CarProps) {
         alt={`${car.brand} ${car.model}`}
         sx={{ objectFit: "cover" }}
       />
+      
       <CardContent sx={{ py: 1.5, px: 2 }}>
         <Typography variant="subtitle1" fontWeight={700}>
           {car.brand} {car.model}

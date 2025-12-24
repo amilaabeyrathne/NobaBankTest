@@ -37,9 +37,10 @@ export default function Cars() {
   if (!cars.length) return <div>No cars found for this category</div>;
 
   return (
+   
     <Box sx={{ maxWidth: 1080, mx: "auto", mt: 2 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, letterSpacing: 0.2, mb: 2 }}>
-        Cars for category {categoryName || numericCategoryId}
+        Cars for category {categoryName || numericCategoryId}  
       </Typography>
       <Box
         sx={{

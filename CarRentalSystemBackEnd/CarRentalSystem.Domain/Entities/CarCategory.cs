@@ -12,7 +12,7 @@ public class CarCategory
     public decimal BaseDayRental { get; set; }
     public decimal BaseKmPrice { get; set; }
     public bool IsActive { get; private set; }
-    public CarPricingStrategy PricingStrategy { get; set; }
+    public CarPricingStrategy PricingStrategy { get; private set; }
 
     public CarCategory(string name, CarPricingStrategy pricingStrategy, decimal dayMultiplier, decimal kmMultiplier,  bool isActive, decimal baseKmPrice , decimal baseDayRental )
     {
