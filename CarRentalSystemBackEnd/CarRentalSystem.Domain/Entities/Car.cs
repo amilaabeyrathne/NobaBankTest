@@ -8,7 +8,7 @@ public class Car
     public int Milage { get; private set; }
     public string Brand { get; private set; }
     public string Model { get; private set; }
-    public string Colour { get; set; }
+    public string Colour { get; private set; }
     public bool IsAvailableToRent { get; private set; }
 
     public Car(
