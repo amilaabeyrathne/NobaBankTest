@@ -1,8 +1,8 @@
 using CarRentalSystem.Application.DTOs;
-using CarRentalSystem.Application.Factories;
 using CarRentalSystem.Application.Interfaces.Repositories;
 using CarRentalSystem.Application.Services;
 using CarRentalSystem.Domain.Entities;
+using CarRentalSystem.Domain.Factory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -14,7 +14,7 @@ public class ReservationServiceConcurrencyTests
     private readonly Mock<ICarRepository> _mockCarRepository;
     private readonly Mock<IReservationRepository> _mockReservationRepository;
     private readonly Mock<ICarCategoryRepository> _mockCarCategoryRepository;
-    private readonly PricingStrategyFactory _pricingStrategyFactory;
+    private readonly Mock<IPricingStrategyFactory>   _pricingStrategyFactory;
     private readonly ReservationService _reservationService;
     private readonly Mock<ILogger<ReservationService>> _mockLogger;
 
@@ -24,11 +24,11 @@ public class ReservationServiceConcurrencyTests
         _mockReservationRepository = new Mock<IReservationRepository>();
         _mockCarCategoryRepository = new Mock<ICarCategoryRepository>();
         _mockLogger = new Mock<ILogger<ReservationService>>();
-        _pricingStrategyFactory = new PricingStrategyFactory();
+        _pricingStrategyFactory = new Mock<IPricingStrategyFactory>();
         _reservationService = new ReservationService(
             _mockCarRepository.Object,
             _mockReservationRepository.Object,
-            _pricingStrategyFactory,
+            _pricingStrategyFactory.Object,
             _mockCarCategoryRepository.Object,
             _mockLogger.Object);
     }

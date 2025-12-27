@@ -1,8 +1,9 @@
 using CarRentalSystem.Application.DTOs;
-using CarRentalSystem.Application.Factories;
 using CarRentalSystem.Application.Interfaces.Repositories;
 using CarRentalSystem.Application.Services;
 using CarRentalSystem.Domain.Entities;
+using CarRentalSystem.Domain.Factory;
+using CarRentalSystem.Domain.PricingStrategies;
 using CarRentalSystem.Domain.Primitives;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -16,7 +17,7 @@ public class ReservationServiceTests
     private readonly Mock<ICarRepository> _mockCarRepository;
     private readonly Mock<IReservationRepository> _mockReservationRepository;
     private readonly Mock<ICarCategoryRepository> _mockCarCategoryRepository;
-    private readonly PricingStrategyFactory _pricingStrategyFactory;
+    private readonly Mock<IPricingStrategyFactory> _mockPricingStrategyFactory;
     private readonly ReservationService _reservationService;
     private readonly Mock<ILogger<ReservationService>> _mockLogger;
 
@@ -26,11 +27,11 @@ public class ReservationServiceTests
         _mockReservationRepository = new Mock<IReservationRepository>();
         _mockCarCategoryRepository = new Mock<ICarCategoryRepository>();
         _mockLogger = new Mock<ILogger<ReservationService>>();
-        _pricingStrategyFactory = new PricingStrategyFactory();
+        _mockPricingStrategyFactory = new Mock<IPricingStrategyFactory>(); ;
         _reservationService = new ReservationService(
             _mockCarRepository.Object,
             _mockReservationRepository.Object,
-            _pricingStrategyFactory,
+            _mockPricingStrategyFactory.Object,
             _mockCarCategoryRepository.Object,
             _mockLogger.Object);
     }
@@ -118,6 +119,7 @@ public class ReservationServiceTests
         var category = new CarCategory("Small Car",CarPricingStrategy.SmallCar, 1.0m, 0m, true, baseKmPrice, baseDayRental);
         var car = new Car("ABC123", categoryId, pickupMeterReading, "Toyota", "Camry", "Blue", isAvailableToRent: false);
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+        var strategy = new SmallCarPricingStrategy();
         SetReservationCar(reservation, car);
         var bookingId = reservation.Id; 
         
@@ -127,7 +129,7 @@ public class ReservationServiceTests
             ReturnMeterReading = pickupMeterReading
         };
 
-        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category, strategy);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -150,6 +152,7 @@ public class ReservationServiceTests
         var category = new CarCategory("Combi", CarPricingStrategy.Combi, 1.3m, 1.0m, true, baseKmPrice, baseDayRental);
         var car = new Car("XYZ789", categoryId, pickupMeterReading, "Volvo", "V70", "Silver", isAvailableToRent: false);
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+        var strategy = new CombiPricingStrategy();
         SetReservationCar(reservation, car);
         var bookingId = reservation.Id; 
         
@@ -159,7 +162,7 @@ public class ReservationServiceTests
             ReturnMeterReading = pickupMeterReading
         };
 
-        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category, strategy);
 
       
         var result = await _reservationService.CreateReturnAsync(returnDto);
@@ -185,6 +188,7 @@ public class ReservationServiceTests
         var car = new Car("TRUCK1", categoryId, pickupMeterReading, "Scania", "R500", "White", isAvailableToRent: false);
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
         SetReservationCar(reservation, car);
+        var strategy = new TruckPricingStrategy();
         var bookingId = reservation.Id; 
         
         var returnDto = new ReturnDto
@@ -193,7 +197,7 @@ public class ReservationServiceTests
             ReturnMeterReading = pickupMeterReading
         };
 
-        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category, strategy);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -216,6 +220,7 @@ public class ReservationServiceTests
         var category = new CarCategory("Truck", CarPricingStrategy.Truck, 1.5m, 1.5m, true, baseKmPrice, baseDayRental);
         var car = new Car("TRUCK1", categoryId, pickupMeterReading, "Scania", "R500", "White", isAvailableToRent: false);
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+        var strategy = new TruckPricingStrategy();
         SetReservationCar(reservation, car);
         var bookingId = reservation.Id;
 
@@ -225,7 +230,7 @@ public class ReservationServiceTests
             ReturnMeterReading = pickupMeterReading
         };
 
-        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category, strategy);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CreateReturnAsync(returnDto));
     }
@@ -245,6 +250,7 @@ public class ReservationServiceTests
         var category = new CarCategory("Truck", CarPricingStrategy.Truck, 1.5m, 1.5m, true, baseKmPrice, baseDayRental);
         var car = new Car("TRUCK1", categoryId, pickupMeterReading, "Scania", "R500", "White", isAvailableToRent: false);
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+        var strategy = new TruckPricingStrategy();
 
         SetReservationCar(reservation, car);
 
@@ -256,7 +262,7 @@ public class ReservationServiceTests
             ReturnMeterReading = 890
         };
 
-        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category, strategy);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CreateReturnAsync(returnDto));
     }
@@ -276,6 +282,7 @@ public class ReservationServiceTests
         var category = new CarCategory("Truck", CarPricingStrategy.Truck, 1.5m, 1.5m, true, baseKmPrice, baseDayRental);
         var car = new Car("TRUCK1", categoryId, pickupMeterReading, "Scania", "R500", "White", isAvailableToRent: false);
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
+        var strategy = new TruckPricingStrategy();
 
         SetReservationCar(reservation, car);
 
@@ -287,7 +294,7 @@ public class ReservationServiceTests
             ReturnMeterReading = 890
         };
 
-        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category, strategy);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CreateReturnAsync(returnDto));
     }
@@ -309,14 +316,15 @@ public class ReservationServiceTests
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
         SetReservationCar(reservation, car);
         var bookingId = reservation.Id;
-        
+        var strategy = new SmallCarPricingStrategy();
+
         var returnDto = new ReturnDto
         {
             BookingNumber = bookingId,
             ReturnMeterReading = returnMeterReading
         };
 
-        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category, strategy);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -341,14 +349,15 @@ public class ReservationServiceTests
         var reservation = new Reservation(car.Id, "1234567890", pickupDateTime, pickupMeterReading);
         SetReservationCar(reservation, car);
         var bookingId = reservation.Id;
-        
+        var strategy = new CombiPricingStrategy();
+
         var returnDto = new ReturnDto
         {
             BookingNumber = bookingId,
             ReturnMeterReading = returnMeterReading
         };
 
-        SetupReturnMocks(bookingId, car.Id, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, car.Id, categoryId, reservation, car, category, strategy);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -374,14 +383,15 @@ public class ReservationServiceTests
         var reservation = new Reservation(carId, "1234567890", pickupDateTime, pickupMeterReading);
         SetReservationCar(reservation, car);
         var bookingId = reservation.Id;
-        
+        var strategy = new TruckPricingStrategy();
+
         var returnDto = new ReturnDto
         {
             BookingNumber = bookingId,
             ReturnMeterReading = returnMeterReading
         };
 
-        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category);
+        SetupReturnMocks(bookingId, carId, categoryId, reservation, car, category, strategy);
 
         var result = await _reservationService.CreateReturnAsync(returnDto);
 
@@ -414,9 +424,22 @@ public class ReservationServiceTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CreateReturnAsync(returnDto));
     }
 
-    private void SetupReturnMocks(Guid bookingId, Guid carId, int categoryId, Reservation reservation, Car car, CarCategory category)
+    private void SetupReturnMocks(Guid bookingId,
+        Guid carId, 
+        int categoryId, 
+        Reservation reservation, 
+        Car car, CarCategory category, 
+        IRentalPricingStrategy rentalPricingStrategy)
     {
-        _mockReservationRepository
+
+        Dictionary<CarPricingStrategy, IRentalPricingStrategy> strategies = new()
+        {
+            { CarPricingStrategy.SmallCar, new SmallCarPricingStrategy() },
+            { CarPricingStrategy.Combi, new CombiPricingStrategy() },
+            {CarPricingStrategy.Truck, new TruckPricingStrategy() }
+        };
+
+    _mockReservationRepository
             .Setup(x => x.GetByBookingIdAsync(bookingId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(reservation);
 
@@ -431,6 +454,10 @@ public class ReservationServiceTests
         _mockReservationRepository
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
+        _mockPricingStrategyFactory.Setup
+            (x => x.GetStrategy(It.IsAny<CarPricingStrategy>()))
+            .Returns(rentalPricingStrategy);
     }
 
     private static void SetReservationCar(Reservation reservation, Car car)

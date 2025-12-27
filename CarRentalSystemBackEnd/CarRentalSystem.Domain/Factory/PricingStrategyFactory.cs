@@ -3,7 +3,7 @@ using CarRentalSystem.Domain.Primitives;
 
 namespace CarRentalSystem.Domain.Factory
 {
-    public class PricingStrPricingStrategyFactoryategy : IPricingStrategyFactory
+    public class PricingStrategyFactory : IPricingStrategyFactory
     {
         private readonly Dictionary<CarPricingStrategy, IRentalPricingStrategy> _strategies = new()
         {

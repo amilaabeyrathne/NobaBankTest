@@ -1,8 +1,8 @@
 using CarRentalSystem.Application.DTOs;
-using CarRentalSystem.Application.Factories;
 using CarRentalSystem.Application.Interfaces.Repositories;
 using CarRentalSystem.Application.Interfaces.Services;
 using CarRentalSystem.Domain.Entities;
+using CarRentalSystem.Domain.Factory;
 using Microsoft.Extensions.Logging;
 
 namespace CarRentalSystem.Application.Services;
@@ -11,14 +11,14 @@ public class ReservationService : IReservationService
 {
     private readonly ICarRepository _carRepository;
     private readonly IReservationRepository _reservationRepository;
-    private readonly PricingStrategyFactory _pricingStrategyFactory;
+    private readonly IPricingStrategyFactory _pricingStrategyFactory;
     private readonly ICarCategoryRepository _carCategoryRepository;
     private readonly ILogger<ReservationService> _logger;
 
     public ReservationService(
         ICarRepository carRepository,
         IReservationRepository reservationRepository,
-        PricingStrategyFactory pricingStrategyFactory,
+        IPricingStrategyFactory pricingStrategyFactory,
         ICarCategoryRepository carCategoryRepository,
         ILogger<ReservationService> logger)
     {
