@@ -29,18 +29,11 @@ export default function Return() {
 
     try {
       const response = await createReturn({ returnData }).unwrap();
-      console.log("Return response:", response);
 
       const rentalAmountValue = response.rentalAmount ;
 
-      if (rentalAmountValue === undefined || rentalAmountValue === null || typeof rentalAmountValue !== 'number') {
-        console.error("RentalAmount not found or invalid in response:", response);
-        console.error("Response keys:", Object.keys(response));
-        throw new Error("Invalid rental amount received from server");
-      }
       setRentalAmount(rentalAmountValue);
     } catch (error: unknown) {
-      console.error("Error returning car:", error);
 
       type RtkError = { data?: { message?: string; error?: string } | string; error?: string };
       let errorMessage = "Failed to return car. Please try again.";

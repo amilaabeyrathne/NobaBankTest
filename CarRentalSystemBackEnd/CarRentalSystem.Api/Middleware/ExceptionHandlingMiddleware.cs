@@ -28,7 +28,7 @@ namespace CarRentalSystem.Api.Middleware
             {
                 ArgumentOutOfRangeException tle => (
                     HttpStatusCode.UnprocessableEntity,
-                    "worng_meter_reading",
+                    "wrong_meter_reading",
                     tle.InnerException!=null?tle.InnerException?.Message: tle.Message),
                 InvalidOperationException tae => (
                     HttpStatusCode.BadRequest,
